@@ -4,9 +4,9 @@ A frontend-only skeleton for a “Cognitive Bias Detector” site: text analysis
 
 ## What’s included
 
-- **Text Analysis** (home): hero, textarea, “Analyze Text” button, feature cards, and CTAs to other pages.
-- **Bias Score**: placeholder score card and demo progress bar.
-- **Neutral Position**: placeholder area for a future neutral rewrite.
+- **Text Analysis** (home): hero, textarea, “Analyze Text” button, and CTAs to Bias Score and Neutral Position.
+- **Bias Score**: semicircle gauge and score display.
+- **Neutral Position**: placeholder for a neutral rewrite.
 
 No backend, API calls, auth, or persistence — UI only, ready to extend.
 
@@ -21,65 +21,93 @@ No backend, API calls, auth, or persistence — UI only, ready to extend.
 
 ```bash
 npm install
-npm run dev     # start dev server (e.g. http://localhost:5173)
-npm run build   # production build to dist/
-npm run preview # preview production build locally
+npm run dev      # start dev server (e.g. http://localhost:5173)
+npm run build    # production build to dist/
+npm run preview  # preview production build locally
+npm run deploy   # build and push dist/ to gh-pages branch (see below)
 ```
+
+---
 
 ## Deploying to GitHub Pages
 
-1. **Use HashRouter**  
-   The app already uses `HashRouter` in `src/main.tsx`, so routes work on GitHub Pages (e.g. `https://user.github.io/repo/#/bias-score`) without server config.
+Your app uses **HashRouter**, so routes work on GitHub Pages without any server config. Choose one of the two methods below.
 
-2. **Set `base` if needed**  
-   If the site is served from a subpath (e.g. `https://user.github.io/Web-Project/`), set that in `vite.config.ts`:
-   ```ts
-   base: '/Web-Project/',
-   ```
-   Then rebuild.
+### Option A: Deploy with GitHub Actions (recommended)
 
-3. **Build and deploy**  
-   - Run `npm run build`.
-   - Push the contents of the `dist/` folder to the `gh-pages` branch, or use a GitHub Action to build and deploy from `main`.
+1. **Push your code to GitHub**  
+   Create a repo (e.g. `Web-Project` or `cognitive-bias-detector`) and push this project.
 
-   **Option A — Manual**  
-   - Copy the contents of `dist/` into a branch named `gh-pages` and push, or use `gh-pages`:
+2. **Turn on GitHub Pages**  
+   - Open the repo on GitHub → **Settings** → **Pages**.  
+   - Under **Build and deployment**, set **Source** to **GitHub Actions**.
+
+3. **Deploy**  
+   - Push to the `main` branch (or run the workflow manually: **Actions** → **Deploy to GitHub Pages** → **Run workflow**).  
+   - The workflow builds the app with the correct base path and deploys to Pages.
+
+4. **Open your site**  
+   After the workflow finishes:  
+   `https://<your-username>.github.io/<repo-name>/`  
+   (e.g. `https://jane.github.io/Web-Project/`)
+
+Routes use the hash: `https://.../Web-Project/#/bias-score`, etc.
+
+---
+
+### Option B: Deploy manually with the `deploy` script
+
+1. **Create the repo on GitHub**  
+   Note the repo name (e.g. `Web-Project`).
+
+2. **Set the base path for production**  
+   - Copy the example env file:
+     ```bash
+     cp .env.production.example .env.production
+     ```
+   - Edit `.env.production` and set `VITE_PUBLIC_PATH` to your repo path:
+     ```
+     VITE_PUBLIC_PATH=/Web-Project/
+     ```
+     Use your actual repo name. (No trailing slash after the repo name is required; the build adds it.)
+
+3. **Install dependencies and deploy**  
    ```bash
-   npx gh-pages -d dist
+   npm install
+   npm run deploy
    ```
+   This runs `npm run build` (using `.env.production` for the base path) and then pushes the `dist/` folder to the `gh-pages` branch with the `gh-pages` package.
 
-   **Option B — GitHub Actions**  
-   - Add a workflow that runs `npm ci && npm run build` and uploads `dist` with `actions/upload-pages-artifact` / `actions/deploy-pages`. The repo’s “Pages” source should be “GitHub Actions”.
+4. **Enable Pages from the branch**  
+   - On GitHub: **Settings** → **Pages**.  
+   - Set **Source** to **Deploy from a branch**.  
+   - Branch: **gh-pages** (or **main** if you use that for the built site).  
+   - Folder: **/ (root)**.  
+   - Save.
 
-4. **Enable Pages**  
-   In the repo: **Settings → Pages → Source**: choose “GitHub Actions” (or “Deploy from a branch” and select the `gh-pages` branch and `/` root).
+5. **Open your site**  
+   `https://<your-username>.github.io/<repo-name>/`
 
-After deployment, open `https://<user>.github.io/<repo>/` (and use the hash routes, e.g. `/#/bias-score`).
+---
+
+### If the site loads but assets are broken (blank page, no styles)
+
+The app must be built with the correct **base path**.  
+- With **Option A**, the workflow sets `VITE_PUBLIC_PATH=/<repo-name>/` automatically.  
+- With **Option B**, make sure `.env.production` has `VITE_PUBLIC_PATH=/YourRepoName/` and you run `npm run build` (or `npm run deploy`) after changing it.
+
+---
 
 ## Project structure
 
 ```
 src/
-  components/       # Reusable UI
-    AppNavbar.tsx
-    Footer.tsx
-    Hero.tsx
-    PageHeader.tsx
-    SectionWrapper.tsx
-    FeatureCard.tsx
-    PlaceholderResultCard.tsx
-    ButtonLinkCard.tsx
-    CtaBlock.tsx
+  components/
   pages/
-    TextAnalysisPage.tsx
-    BiasScorePage.tsx
-    NeutralPositionPage.tsx
   App.tsx
   main.tsx
   index.css
 ```
-
-You can grow this into 12+ components by splitting sections, adding result panels, forms, or shared layout pieces.
 
 ## License
 

@@ -1,10 +1,14 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  // For GitHub Pages: set base to your repo name, e.g. base: '/Web-Project/'
-  // so assets load correctly. Using HashRouter means routes still work without this.
-  base: '/',
+export default defineConfig(({ mode }) => {
+  // Load env so VITE_PUBLIC_PATH can set base for GitHub Pages (e.g. /repo-name/)
+  const env = loadEnv(mode, process.cwd(), '');
+  const base = env.VITE_PUBLIC_PATH || '/';
+
+  return {
+    plugins: [react()],
+    base,
+  };
 });
