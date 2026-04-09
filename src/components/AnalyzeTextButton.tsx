@@ -1,6 +1,7 @@
 import { Button } from 'react-bootstrap';
+import type { AnalysisStatus } from '../analysisStatus';
 
-export type AnalysisStatus = 'idle' | 'loading' | 'success';
+export type { AnalysisStatus };
 
 type AnalyzeTextButtonProps = {
   status: AnalysisStatus;
@@ -10,13 +11,14 @@ type AnalyzeTextButtonProps = {
 export default function AnalyzeTextButton({ status, onAnalyze }: AnalyzeTextButtonProps) {
   const isLoading = status === 'loading';
   const isSuccess = status === 'success';
+  const isError = status === 'error';
 
   return (
     <Button
       type="button"
       variant="primary"
       size="lg"
-      className={`btn-cbd-analyze ${isLoading ? 'btn-cbd-analyze--loading' : ''} ${isSuccess ? 'btn-cbd-analyze--success' : ''}`}
+      className={`btn-cbd-analyze ${isLoading ? 'btn-cbd-analyze--loading' : ''} ${isSuccess ? 'btn-cbd-analyze--success' : ''} ${isError ? 'btn-cbd-analyze--error' : ''}`}
       disabled={isLoading || isSuccess}
       aria-busy={isLoading}
       onClick={onAnalyze}
@@ -40,6 +42,8 @@ export default function AnalyzeTextButton({ status, onAnalyze }: AnalyzeTextButt
           </span>
           <span className="btn-cbd-analyze__label">Analysis Complete</span>
         </span>
+      ) : isError ? (
+        <span className="btn-cbd-analyze__label">Try again</span>
       ) : (
         <span className="btn-cbd-analyze__label">Analyze Text</span>
       )}

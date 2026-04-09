@@ -5,22 +5,32 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "tsx watch server/index.ts",
+    "dev:all": "concurrently -n web,api -c blue,green \"npm run dev\" \"npm run dev:api\"",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "deploy": "npm run build && npx gh-pages -d dist"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "openai": "^4.73.0",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.2",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "concurrently": "^9.1.0",
     "gh-pages": "^6.2.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "bootstrap": "^5.3.3",
+    "tsx": "^4.19.2",
     "typescript": "~5.6.2",
     "vite": "^5.4.10"
   }

@@ -1,41 +1,41 @@
-import { useEffect, useRef, useState } from 'react';
-import { Form, Row, Col } from 'react-bootstrap';
-import AnalyzeTextButton, { type AnalysisStatus } from '../components/AnalyzeTextButton';
+import { useState } from 'react';
+import { Alert, Form, Row, Col } from 'react-bootstrap';
+import { requestBiasScore } from '../api/biasScore';
+import AnalyzeTextButton from '../components/AnalyzeTextButton';
+import { useBiasAnalysis } from '../context/BiasAnalysisContext';
 import SectionWrapper from '../components/SectionWrapper';
 import Hero from '../components/Hero';
 import NextStepCta from '../components/NextStepCta';
 
-const ANALYSIS_DELAY_MS = 3000;
+const LOG = '[analyze]';
 
 export default function TextAnalysisPage() {
-  const [text, setText] = useState('');
-  const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>('idle');
-  const [emptySubmitHint, setEmptySubmitHint] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const {
+    analysisText: text,
+    setAnalysisText,
+    analysisStatus,
+    setAnalysisStatus,
+    analysisError,
+    setAnalysisError,
+    setBiasScore,
+  } = useBiasAnalysis();
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current !== null) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
+  const [emptySubmitHint, setEmptySubmitHint] = useState(false);
 
   const handleTextChange = (value: string) => {
-    setText(value);
-    if (analysisStatus === 'success') {
+    setAnalysisText(value);
+    if (analysisStatus === 'success' || analysisStatus === 'error') {
       setAnalysisStatus('idle');
     }
     if (emptySubmitHint) {
       setEmptySubmitHint(false);
     }
+    if (analysisError) {
+      setAnalysisError(null);
+    }
   };
 
-  /**
-   * Placeholder flow — swap this for a real async API call later
-   * (e.g. await fetch(...) or an OpenAI client) and map errors to UI state.
-   */
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (analysisStatus === 'loading') {
       return;
     }
@@ -48,15 +48,21 @@ export default function TextAnalysisPage() {
     }
 
     setEmptySubmitHint(false);
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-    }
-
+    setAnalysisError(null);
     setAnalysisStatus('loading');
-    timeoutRef.current = setTimeout(() => {
-      timeoutRef.current = null;
+    console.log(`${LOG} button clicked, starting request`);
+
+    try {
+      const score = await requestBiasScore(text.trim());
+      console.log(`${LOG} response OK, score=${score}, storing in context`);
+      setBiasScore(score);
       setAnalysisStatus('success');
-    }, ANALYSIS_DELAY_MS);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      console.warn(`${LOG} request failed:`, message);
+      setAnalysisError(message);
+      setAnalysisStatus('error');
+    }
   };
 
   return (
@@ -71,7 +77,8 @@ export default function TextAnalysisPage() {
       <SectionWrapper>
         <div className="visually-hidden" aria-live="polite" aria-atomic="true">
           {analysisStatus === 'loading' ? 'Analyzing text. Please wait.' : null}
-          {analysisStatus === 'success' ? 'Analysis complete.' : null}
+          {analysisStatus === 'success' ? 'Analysis complete. Bias score is ready on the Bias Score page.' : null}
+          {analysisError ? `Analysis failed. ${analysisError}` : null}
         </div>
         <Form>
           <Form.Group className="mb-4">
@@ -93,32 +100,46 @@ export default function TextAnalysisPage() {
               analyze.
             </p>
           ) : null}
-          <AnalyzeTextButton status={analysisStatus} onAnalyze={handleAnalyze} />
+          {analysisError ? (
+            <Alert variant="danger" className="mb-3" role="alert">
+              {analysisError}
+            </Alert>
+          ) : null}
+          <AnalyzeTextButton status={analysisStatus} onAnalyze={() => void handleAnalyze()} />
         </Form>
 
-        <div className="mt-5 pt-2">
-          <h2 className="h5 fw-semibold mb-3" style={{ color: 'var(--cbd-text)' }}>
-            After analyzing
-          </h2>
-          <Row xs={1} md={2} className="g-4">
-            <Col>
-              <NextStepCta
-                to="/bias-score"
-                title="Bias Score"
-                description="See how biased the framing is on a clear scale."
-                variant="ice"
-              />
-            </Col>
-            <Col>
-              <NextStepCta
-                to="/neutral-position"
-                title="Neutral Position"
-                description="Read a more neutral version of the same content."
-                variant="slate"
-              />
-            </Col>
-          </Row>
-        </div>
+        {analysisStatus === 'success' ? (
+          <section
+            className="after-analyze-reveal mt-5 pt-2"
+            aria-labelledby="after-analyze-heading"
+          >
+            <h2
+              id="after-analyze-heading"
+              className="after-analyze-reveal__heading h5 fw-semibold mb-3"
+              style={{ color: 'var(--cbd-text)' }}
+            >
+              After analyzing
+            </h2>
+            <Row xs={1} md={2} className="g-4">
+              <Col className="after-analyze-reveal__col after-analyze-reveal__col--1">
+                <NextStepCta
+                  to="/bias-score"
+                  title="Bias Score"
+                  description="See how biased the framing is on a clear scale."
+                  variant="ice"
+                />
+              </Col>
+              <Col className="after-analyze-reveal__col after-analyze-reveal__col--2">
+                <NextStepCta
+                  to="/neutral-position"
+                  title="Neutral Position"
+                  description="Read a more neutral version of the same content."
+                  variant="slate"
+                />
+              </Col>
+            </Row>
+          </section>
+        ) : null}
       </SectionWrapper>
     </>
   );

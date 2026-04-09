@@ -200,6 +200,45 @@ a.card-cbd:hover {
 .next-step-cta-ice .next-step-arrow { color: var(--cbd-cta-bias); }
 .next-step-cta-slate .next-step-arrow { color: var(--cbd-cta-neutral); }
 
+/* Text Analysis: next-step cards (Bias Score / Neutral) — show only after successful analyze */
+@keyframes after-analyze-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.after-analyze-reveal__heading {
+  opacity: 0;
+  animation: after-analyze-enter 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.after-analyze-reveal__col {
+  opacity: 0;
+  animation: after-analyze-enter 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.after-analyze-reveal__col--1 {
+  animation-delay: 0.07s;
+}
+
+.after-analyze-reveal__col--2 {
+  animation-delay: 0.14s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .after-analyze-reveal__heading,
+  .after-analyze-reveal__col {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Next steps: large page-name buttons */
 .card-cbd-large .next-step-page-name {
   font-size: 1.75rem;
@@ -270,6 +309,18 @@ footer.cbd-footer .text-muted {
   background: rgba(34, 197, 94, 0.18);
   border-color: rgba(34, 197, 94, 0.45);
   color: #86efac;
+}
+
+.btn-cbd-analyze--error {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+}
+
+.btn-cbd-analyze--error:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.2);
+  border-color: rgba(252, 165, 165, 0.55);
+  color: #fff;
 }
 
 .btn-cbd-analyze__inner {
